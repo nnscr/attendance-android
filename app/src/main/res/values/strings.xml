@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Anwesenheit</string>
+
+    <string name="action_settings">Einstellungen</string>
+    <string name="check_in">Kommen</string>
+    <string name="check_out">Gehen</string>
+    <string name="authenticate">Authentifizieren</string>
+    <string name="poll">Poll</string>
+    <string-array name="list_entries">
+        <item>Status</item>
+        <item>Gesamt Heute</item>
+        <item>Aktueller Block</item>
+    </string-array>
+</resources>
