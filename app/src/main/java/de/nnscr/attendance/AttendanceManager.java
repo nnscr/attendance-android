@@ -1,9 +1,13 @@
 package de.nnscr.attendance;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,8 +32,39 @@ public class AttendanceManager {
     protected State state;
     protected SharedPreferences preferences;
     protected StatusChangeEventListener listener;
+    protected Context context;
+
+    protected class MessageCallbackHandler implements MessageCallback {
+        @Override
+        public void onResult(JSONObject result) throws JSONException {
+
+        }
+
+        @Override
+        public void onException(Exception e) {
+            Toast t = Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG);
+            t.show();
+        }
+
+        @Override
+        public void onMalformedJSON(String malformedJSON, JSONException exception) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("JSON Fehler");
+            builder.setMessage(malformedJSON);
+            builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+    }
 
     public AttendanceManager(Context context, StatusChangeEventListener listener) {
+        this.context = context;
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.listener = listener;
     }
@@ -43,7 +78,7 @@ public class AttendanceManager {
         String pwd  = preferences.getString("password", "");
 
         try {
-            this.sendMessage("Session:login", "{\"username\": \"" + user + "\", \"password\": \"" + pwd + "\"}", new MessageCallback() {
+            this.sendMessage("Session:login", "{\"username\": \"" + user + "\", \"password\": \"" + pwd + "\"}", new MessageCallbackHandler() {
                 @Override
                 public void onResult(JSONObject result) throws JSONException{
                     if (result.getBoolean("_success")) {
@@ -59,7 +94,7 @@ public class AttendanceManager {
     }
 
     protected MessageCallback getStatusResultHandler() {
-        return new MessageCallback() {
+        return new MessageCallbackHandler() {
             @Override
             public void onResult(JSONObject result) throws JSONException {
                 if (result.getBoolean("_success")) {
@@ -85,6 +120,10 @@ public class AttendanceManager {
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
+                    }
+
+                    if (result.has("name")) {
+                        listener.onNameChange(result.getString("name"));
                     }
 
                     listener.onStatusChange(state);
@@ -130,7 +169,14 @@ public class AttendanceManager {
             tok = "?token=" + this.token;
         }
 
-        m.execute(preferences.getString("url", "") + "/ws/" + msg + tok, payload);
+        String uri;
+        if (preferences.getBoolean("dev_mode", false)) {
+            uri = preferences.getString("dev_url", "");
+        } else {
+            uri = preferences.getString("url", "");
+        }
+
+        m.execute(uri + "/ws/" + msg + tok, payload);
     }
 
 

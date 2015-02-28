@@ -24,11 +24,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.jar.Attributes;
 
 public class MainActivity extends ActionBarActivity implements StatusChangeEventListener {
     final int STATUS = 0;
-    final int TOTAL = 1;
-    final int BLOCK = 2;
+    final int TOTAL = 2;
+    final int BLOCK = 3;
+    final int EMPLOYEE = 1;
 
     AttendanceManager manager;
     Notification notification;
@@ -71,6 +73,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
 
         model = new ArrayList<>();
         model.add(createHashmap("Status", "Unbekannt"));
+        model.add(createHashmap("Mitarbeiter", "Unbekannt"));
         model.add(createHashmap("Gesamt Heute", "00:00:00"));
         model.add(createHashmap("Aktueller Block", "00:00:00"));
 
@@ -78,6 +81,13 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         ListView lv = (ListView)findViewById(R.id.listView);
         adapter = new SimpleAdapter(this, model, android.R.layout.simple_list_item_2, from, to);
         lv.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onResume() {
+        manager.pollState();
+
+        super.onResume();
     }
 
     private void setViewItem(int id, String value) {
@@ -165,6 +175,11 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         currentTimeBlock = seconds;
     }
 
+    @Override
+    public void onNameChange(String name) {
+        setViewItem(EMPLOYEE, name);
+    }
+
     protected void showNotification() {
         notificationManager.notify(1, notification);
     }
@@ -188,6 +203,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
                         @Override
                         public void run() {
                             setViewItem(BLOCK, formatTime(currentTimeBlock));
+                            setViewItem(TOTAL, formatTime(manager.totalTime + currentTimeBlock));
                         }
                     });
                 }

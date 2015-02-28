@@ -1,6 +1,8 @@
 package de.nnscr.attendance;
 
+import android.app.Dialog;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -25,6 +27,7 @@ import java.util.List;
 
 public class AsyncMessage extends AsyncTask<String, String, String> {
     protected MessageCallback callback;
+    protected Exception exception;
 
     public AsyncMessage(MessageCallback callback) {
         this.callback = callback;
@@ -62,9 +65,9 @@ public class AsyncMessage extends AsyncTask<String, String, String> {
                 response.getEntity().getContent().close();
                 throw new IOException(statusLine.getReasonPhrase());
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             //TODO Handle problems..
-            return "EXCEPTION! " + e.getMessage();
+            exception = e;
         }
 
         return responseString;
@@ -75,17 +78,15 @@ public class AsyncMessage extends AsyncTask<String, String, String> {
         super.onPostExecute(s);
 
         try {
-            this.callback.onResult(parseJSON(s));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
+            if (exception != null) {
+                this.callback.onException(exception);
+            } else {
+                JSONObject json = new JSONObject(s);
 
-    protected JSONObject parseJSON(String payload) {
-        try {
-            return new JSONObject(payload);
+                this.callback.onResult(json);
+            }
         } catch (JSONException e) {
-            return null;
+            this.callback.onMalformedJSON(s, e);
         }
     }
 }

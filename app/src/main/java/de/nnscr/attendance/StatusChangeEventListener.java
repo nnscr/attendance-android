@@ -7,4 +7,5 @@ public interface StatusChangeEventListener {
     public void onStatusChange(AttendanceManager.State state);
     public void onAuthenticate();
     public void onSetStartTime(long seconds);
+    public void onNameChange(String name);
 }

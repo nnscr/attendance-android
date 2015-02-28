@@ -8,4 +8,6 @@ import org.json.JSONObject;
  */
 public interface MessageCallback {
     public void onResult(JSONObject result) throws JSONException;
+    public void onException(Exception e);
+    public void onMalformedJSON(String malformedJSON, JSONException exception);
 }

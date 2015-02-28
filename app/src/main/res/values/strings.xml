@@ -8,6 +8,7 @@
     <string name="poll">Poll</string>
     <string-array name="list_entries">
         <item>Status</item>
+        <item>Mitarbeiter</item>
         <item>Gesamt Heute</item>
         <item>Aktueller Block</item>
     </string-array>
