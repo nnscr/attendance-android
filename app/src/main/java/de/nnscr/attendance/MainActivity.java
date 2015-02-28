@@ -49,6 +49,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         // intent for clicking on the notification
         Intent resultIntent = new Intent(this, MainActivity.class);
 
+
         PendingIntent resultPendingIntent =
                 PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
