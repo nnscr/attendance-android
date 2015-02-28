@@ -4,27 +4,23 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
-import android.widget.TwoLineListItem;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.jar.Attributes;
 
 public class MainActivity extends ActionBarActivity implements StatusChangeEventListener {
     final int STATUS = 0;
@@ -35,7 +31,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     AttendanceManager manager;
     Notification notification;
     NotificationManager notificationManager;
-    long currentTimeBlock;
+    Date currentBlockStart;
     Timer timer;
     private boolean timerRunning;
     private List<HashMap<String, String>> model;
@@ -171,8 +167,8 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     }
 
     @Override
-    public void onSetStartTime(long seconds) {
-        currentTimeBlock = seconds;
+    public void onSetStartTime(Date startTime) {
+        currentBlockStart = startTime;
     }
 
     @Override
@@ -193,15 +189,15 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
 
         if (!timerRunning) {
             timerRunning = true;
-            timer = new Timer(true);
+            timer = new Timer(false);
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    currentTimeBlock += 1;
-
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            long currentTimeBlock = (new Date().getTime() - currentBlockStart.getTime()) / 1000;
+
                             setViewItem(BLOCK, formatTime(currentTimeBlock));
                             setViewItem(TOTAL, formatTime(manager.totalTime + currentTimeBlock));
                         }
@@ -215,7 +211,6 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         setViewItem(BLOCK, formatTime(0));
 
         if (timer != null) {
-            currentTimeBlock = 0;
             timerRunning = false;
             timer.cancel();
         }

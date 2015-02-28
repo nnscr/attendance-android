@@ -1,7 +1,6 @@
 package de.nnscr.attendance;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -116,7 +115,11 @@ public class AttendanceManager {
                             Date now  = format.parse(strNow);
                             Date date = format.parse(strStart);
 
-                            listener.onSetStartTime((now.getTime() - date.getTime()) / 1000);
+                            // recalculate the time diff for the local time to synchronize time differences
+                            long diff = (now.getTime() - date.getTime());
+                            Date startTime = new Date(new Date().getTime() - diff);
+
+                            listener.onSetStartTime(startTime);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
