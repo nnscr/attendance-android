@@ -1,19 +1,26 @@
 package de.nnscr.attendance;
 
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +34,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     final int TOTAL = 2;
     final int BLOCK = 3;
     final int EMPLOYEE = 1;
+    final int DEVELOPER = 4;
 
     AttendanceManager manager;
     Notification notification;
@@ -36,12 +44,14 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     private boolean timerRunning;
     private List<HashMap<String, String>> model;
     SimpleAdapter adapter;
+    SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
         // intent for clicking on the notification
@@ -52,7 +62,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
                 PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // build the notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher);
         builder.setContentTitle("Anwesend");
         builder.setContentText("Du bist momentan anwesend.");
@@ -77,11 +87,43 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         ListView lv = (ListView)findViewById(R.id.listView);
         adapter = new SimpleAdapter(this, model, android.R.layout.simple_list_item_2, from, to);
         lv.setAdapter(adapter);
+
+        // required to build the alert
+        final Context context = this;
+
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (i == DEVELOPER) {
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
+                    dialogBuilder.setTitle("Entwicklermodus beenden?");
+                    dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            preferences.edit().putBoolean("dev_mode", false).commit();
+                            setDeveloperUI();
+                            manager.pollState();
+                        }
+                    });
+                    dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
+
+                    dialogBuilder.create().show();
+                }
+            }
+        });
+
+        setDeveloperUI();
     }
 
     @Override
     protected void onResume() {
         manager.pollState();
+        setDeveloperUI();
 
         super.onResume();
     }
@@ -94,7 +136,23 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     private void setStatusColor(int color) {
         ListView lv = (ListView)findViewById(R.id.listView);
         View item = lv.getChildAt(STATUS);
-        item.setBackgroundColor(color);
+        //item.setBackgroundColor(color);
+        TextView tv = (TextView)item.findViewById(android.R.id.text2);
+        tv.setTextColor(color);
+    }
+
+    private void setDeveloperUI() {
+        setDeveloperUI(preferences.getBoolean("dev_mode", false));
+    }
+
+    private void setDeveloperUI(boolean mode) {
+        if (mode && model.size() <= DEVELOPER) {
+            model.add(createHashmap("Entwickler", "Entwicklermodus aktiviert."));
+        } else if(!mode && model.size() > DEVELOPER) {
+            model.remove(DEVELOPER);
+        }
+
+        adapter.notifyDataSetChanged();
     }
 
     private HashMap<String, String> createHashmap(String title, String value) {
@@ -152,7 +210,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
             startTimer();
         } else {
             setViewItem(STATUS, "Abwesend");
-            setStatusColor(Color.YELLOW);
+            setStatusColor(Color.RED);
             btn.setText(R.string.check_in);
             hideNotification();
             stopTimer();
@@ -188,6 +246,10 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         setViewItem(BLOCK, formatTime(0));
 
         if (!timerRunning) {
+            if (null == currentBlockStart) {
+                currentBlockStart = new Date();
+            }
+
             timerRunning = true;
             timer = new Timer(false);
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -211,6 +273,7 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         setViewItem(BLOCK, formatTime(0));
 
         if (timer != null) {
+            currentBlockStart = null;
             timerRunning = false;
             timer.cancel();
         }
