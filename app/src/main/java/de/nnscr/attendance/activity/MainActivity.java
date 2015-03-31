@@ -1,4 +1,4 @@
-package de.nnscr.attendance;
+package de.nnscr.attendance.activity;
 
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -28,6 +28,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import de.nnscr.attendance.helper.TimeFormatHelper;
+import de.nnscr.attendance.manager.AttendanceManager;
+import de.nnscr.attendance.R;
+import de.nnscr.attendance.StatusChangeEventListener;
 
 public class MainActivity extends ActionBarActivity implements StatusChangeEventListener {
     final int STATUS = 0;
@@ -184,6 +189,9 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         } else if (id == R.id.action_poll) {
             manager.pollState();
             return true;
+        } else if (id == R.id.action_summary) {
+            openSummary();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -194,13 +202,20 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         startActivity(intent);
     }
 
+    public void openSummary() {
+        Intent intent = new Intent(this, SummaryActivity.class);
+        startActivity(intent);
+    }
+
     public void onToggle(View v) {
+        findViewById(R.id.btn_toggle).setEnabled(false);
         manager.checkInOrOut();
     }
 
     @Override
     public void onStatusChange(AttendanceManager.State state) {
         Button btn = (Button)findViewById(R.id.btn_toggle);
+        btn.setEnabled(true);
 
         if (state == AttendanceManager.State.IN) {
             setViewItem(STATUS, "Anwesend");
@@ -280,10 +295,6 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
     }
 
     private String formatTime(long time) {
-        long hours = time / 60 / 60;
-        long minutes = (time - (hours * 60 * 60)) / 60;
-        long seconds = time % 60;
-
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return TimeFormatHelper.formatTime(time);
     }
 }

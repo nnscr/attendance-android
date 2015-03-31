@@ -6,4 +6,8 @@
 
     <item android:id="@+id/action_poll" android:title="@string/poll"
         android:orderInCategory="99" app:showAsAction="never" />
+
+    <item android:id="@+id/action_summary" android:title="@string/summary"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:orderInCategory="99" app:showAsAction="ifRoom" />
 </menu>

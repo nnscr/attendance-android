@@ -2,6 +2,8 @@ package de.nnscr.attendance;
 
 import java.util.Date;
 
+import de.nnscr.attendance.manager.AttendanceManager;
+
 /**
  * Created by philipp on 27.02.15.
  */

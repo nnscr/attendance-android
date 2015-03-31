@@ -52,6 +52,8 @@ public class AsyncMessage extends AsyncTask<String, String, String> {
             StatusLine statusLine = response.getStatusLine();
             if(statusLine.getStatusCode() == HttpStatus.SC_OK){
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+
                 response.getEntity().writeTo(out);
                 responseString = out.toString();
                 out.close();

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Anwesenheit</string>
 
+    <!-- Main Activity -->
     <string name="action_settings">Einstellungen</string>
     <string name="check_in">Kommen</string>
     <string name="check_out">Gehen</string>
@@ -12,4 +13,14 @@
         <item>Gesamt Heute</item>
         <item>Aktueller Block</item>
     </string-array>
+
+    <!-- Summary Activity -->
+    <string name="summary">Zusammenfassung</string>
+    <string name="title_activity_summary_year_tab">SummaryYearTab</string>
+
+    <string name="hello_world">Hello world!</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment2">Hello blank fragment month</string>
 </resources>

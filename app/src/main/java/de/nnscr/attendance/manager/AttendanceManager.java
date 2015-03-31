@@ -1,69 +1,33 @@
-package de.nnscr.attendance;
+package de.nnscr.attendance.manager;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import de.nnscr.attendance.MessageCallback;
+import de.nnscr.attendance.StatusChangeEventListener;
 
 /**
  * Created by philipp on 27.02.15.
  */
-public class AttendanceManager {
+public class AttendanceManager extends AbstractManager {
     public enum State {
         IN, OUT
     }
 
-    protected long totalTime;
-    protected String token;
+    public long totalTime;
     protected State state;
-    protected SharedPreferences preferences;
     protected StatusChangeEventListener listener;
     protected Context context;
 
-    protected class MessageCallbackHandler implements MessageCallback {
-        @Override
-        public void onResult(JSONObject result) throws JSONException {
-
-        }
-
-        @Override
-        public void onException(Exception e) {
-            Toast t = Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG);
-            t.show();
-        }
-
-        @Override
-        public void onMalformedJSON(String malformedJSON, JSONException exception) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("JSON Fehler");
-            builder.setMessage(malformedJSON);
-            builder.setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                }
-            });
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        }
-    }
-
     public AttendanceManager(Context context, StatusChangeEventListener listener) {
+        super(context);
         this.context = context;
-        this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.listener = listener;
     }
 
@@ -156,29 +120,6 @@ public class AttendanceManager {
         String employee = preferences.getString("employee", "");
 
         return "{\"employeeId\": \"" + employee + "\"}";
-    }
-
-    protected void sendMessage(String msg, MessageCallback callback) throws IOException {
-        sendMessage(msg, null, callback);
-    }
-
-    protected void sendMessage(String msg, String payload, MessageCallback callback) throws IOException {
-        AsyncMessage m = new AsyncMessage(callback);
-
-        String tok = "";
-
-        if (this.token != null) {
-            tok = "?token=" + this.token;
-        }
-
-        String uri;
-        if (preferences.getBoolean("dev_mode", false)) {
-            uri = preferences.getString("dev_url", "");
-        } else {
-            uri = preferences.getString("url", "");
-        }
-
-        m.execute(uri + "/ws/" + msg + tok, payload);
     }
 
 

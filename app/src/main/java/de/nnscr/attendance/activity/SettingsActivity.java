@@ -1,4 +1,4 @@
-package de.nnscr.attendance;
+package de.nnscr.attendance.activity;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -13,6 +13,8 @@ import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
 import java.util.List;
+
+import de.nnscr.attendance.R;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
