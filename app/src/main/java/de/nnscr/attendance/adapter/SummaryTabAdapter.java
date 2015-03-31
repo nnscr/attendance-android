@@ -4,7 +4,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import de.nnscr.attendance.fragment.MonthFragment;
+import de.nnscr.attendance.fragment.WeekFragment;
 import de.nnscr.attendance.fragment.YearFragment;
 
 /**
@@ -21,7 +21,7 @@ public class SummaryTabAdapter extends FragmentPagerAdapter {
             case 0:
                 return new YearFragment();
             case 1:
-                return new MonthFragment();
+                return new WeekFragment();
             case 2:
         }
         return null;
