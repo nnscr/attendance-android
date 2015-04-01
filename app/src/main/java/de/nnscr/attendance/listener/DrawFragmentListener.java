@@ -6,5 +6,6 @@ package de.nnscr.attendance.listener;
 public interface DrawFragmentListener {
     public void onSwitchToWeeks();
     public void onSwitchToDays();
+    public void onSwitchToDetails();
     public void onStateChanged();
 }

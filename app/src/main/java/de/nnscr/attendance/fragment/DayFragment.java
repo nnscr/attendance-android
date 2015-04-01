@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.joda.time.DateTime;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import de.nnscr.attendance.R;
 import de.nnscr.attendance.adapter.SummaryDayAdapter;
 import de.nnscr.attendance.model.SummaryDay;
+import de.nnscr.attendance.model.SummaryWeek;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -40,6 +42,15 @@ public class DayFragment extends SummaryFragment {
         ListView listView = (ListView)view.findViewById(R.id.listView);
         adapter = new SummaryDayAdapter(getActivity(), model);
         listView.setAdapter(adapter);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                SummaryDay day = adapter.getItem(i);
+
+                mediator.selectDay(day);
+            }
+        });
 
         return view;
     }

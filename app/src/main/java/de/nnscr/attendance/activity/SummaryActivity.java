@@ -81,6 +81,11 @@ public class SummaryActivity extends ActionBarActivity implements SummaryCallbac
     }
 
     @Override
+    public void onSwitchToDetails() {
+        viewPager.setCurrentItem(SummaryPagerAdapter.ID_DETAIL);
+    }
+
+    @Override
     public void onAuthenticate() {
 
     }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import de.nnscr.attendance.SummaryMediator;
 import de.nnscr.attendance.fragment.DayFragment;
+import de.nnscr.attendance.fragment.DetailFragment;
 import de.nnscr.attendance.fragment.SummaryFragment;
 import de.nnscr.attendance.fragment.WeekFragment;
 import de.nnscr.attendance.fragment.YearFragment;
@@ -29,9 +30,10 @@ public class SummaryPagerAdapter extends FragmentPagerAdapter {
         super(fm);
 
         fragments = new SummaryFragment[] {
-            new YearFragment(),
-            new WeekFragment(),
-            new DayFragment(),
+                new YearFragment(),
+                new WeekFragment(),
+                new DayFragment(),
+                new DetailFragment(),
         };
 
         for (SummaryFragment fragment : fragments) {
@@ -56,7 +58,7 @@ public class SummaryPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -65,6 +67,7 @@ public class SummaryPagerAdapter extends FragmentPagerAdapter {
             case ID_YEAR: return "Jahre";
             case ID_WEEK: return "Wochen";
             case ID_DAY: return "Tage";
+            case ID_DETAIL: return "Details";
         }
 
         return null;

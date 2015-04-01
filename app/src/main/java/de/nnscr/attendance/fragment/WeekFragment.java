@@ -41,9 +41,6 @@ public class WeekFragment extends SummaryFragment {
         adapter = new SummaryWeekAdapter(getActivity(), model);
         listView.setAdapter(adapter);
 
-        // query summaries from server
-        mediator.requestSummaries(model, adapter);
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

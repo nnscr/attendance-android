@@ -6,18 +6,19 @@ import org.joda.time.DateTime;
  * Created by philipp on 31.03.15.
  */
 public class SummaryState {
+    private SummaryDay summaryDay;
     private DateTime firstRecord;
+    private DateTime day;
     private int year;
     private int week;
 
     public SummaryState() {
         // default values
-        DateTime now = new DateTime();
+        day = new DateTime();
+        year = day.getYear();
+        week = day.getWeekOfWeekyear();
 
-        year = now.getYear();
-        week = now.getWeekOfWeekyear();
-
-        firstRecord = now.minusYears(2);
+        firstRecord = day.minusYears(2);
     }
 
     public int getYear() {
@@ -26,6 +27,7 @@ public class SummaryState {
 
     public void setYear(int year) {
         this.year = year;
+        this.day = day.withYear(year);
 
         DateTime now = new DateTime();
 
@@ -44,6 +46,7 @@ public class SummaryState {
 
     public void setWeek(int week) {
         this.week = week;
+        this.day = day.withWeekOfWeekyear(week);
     }
 
     public DateTime getFirstRecord() {
@@ -54,7 +57,15 @@ public class SummaryState {
         this.firstRecord = firstRecord;
     }
 
-    public DateTime getCurrent() {
-        return new DateTime().withYear(year).withWeekOfWeekyear(week);
+    public void setDay(SummaryDay day) {
+        DateTime date = day.getDay();
+        this.day = this.day.withDate(date.getYear(), date.getMonthOfYear(), date.getDayOfMonth());
+        this.summaryDay = day;
     }
+
+    public DateTime getCurrent() {
+        return day;
+    }
+
+    public SummaryDay getSummaryDay() { return summaryDay; }
 }

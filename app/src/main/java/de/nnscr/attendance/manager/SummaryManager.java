@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -18,6 +19,7 @@ import org.json.JSONStringer;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,7 +28,9 @@ import java.util.List;
 import de.nnscr.attendance.MessageCallback;
 import de.nnscr.attendance.SummaryCallback;
 import de.nnscr.attendance.adapter.SummaryWeekAdapter;
+import de.nnscr.attendance.listener.SummaryRecordsResultListener;
 import de.nnscr.attendance.listener.SummaryResponseCallback;
+import de.nnscr.attendance.model.SummaryBlock;
 import de.nnscr.attendance.model.SummaryTimeSpan;
 import de.nnscr.attendance.model.SummaryWeek;
 
@@ -66,6 +70,10 @@ public class SummaryManager extends AbstractManager {
     }
 
     public void getSummaries(final List<? extends SummaryTimeSpan> model, final ArrayAdapter adapter) {
+        if (model.size() == 0) {
+            return;
+        }
+
         JSONObject blocks = new JSONObject();
 
         for (SummaryTimeSpan span : model) {
@@ -105,27 +113,39 @@ public class SummaryManager extends AbstractManager {
         }
     }
 
-    public void getRecords(SummaryTimeSpan timeSpan) {
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public void getRecords(DateTime start, DateTime end, final SummaryRecordsResultListener callback) {
+        DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
         String employee = preferences.getString("employee", "");
-        String start = format.format(timeSpan.getStart());
-        String end = format.format(timeSpan.getEnd());
 
         String payload = "{"
             + "\"employeeId\": \"" + employee + "\","
-            + "\"start\": \"" + start + "\","
-            + "\"end\": \"" + end + "\""
+            + "\"start\": \"" + start.toString(format) + "\","
+            + "\"end\": \"" + end.toString(format) + "\""
             + "}";
+
+        final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
         try {
             sendMessage("hrm:getRecords", payload, new MessageCallbackHandler() {
                 @Override
                 public void onResult(JSONObject result) throws JSONException {
                     if (result.getBoolean("_success")) {
-                        JSONObject blocks = result.getJSONObject("blocks");
+                        JSONObject jsonBlocks = result.getJSONObject("blocks");
 
-                        listener.onResult(blocks);
+                        ArrayList<SummaryBlock> blocks = new ArrayList<>();
+
+                        for (int i = 0, j = jsonBlocks.length(); i < j; ++i) {
+                            JSONObject jsonBlock = jsonBlocks.getJSONObject(Integer.toString(i));
+                            SummaryBlock block = new SummaryBlock();
+
+                            block.start = dateTimeFormatter.parseDateTime(jsonBlock.getString("begin"));
+                            block.end = dateTimeFormatter.parseDateTime(jsonBlock.getString("end"));
+
+                            blocks.add(block);
+                        }
+
+                        callback.onResult(blocks);
                     } else if (result.getString("_status").equals("Invalid or no token supplied.")) {
                         authenticate();
                     }

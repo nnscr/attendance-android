@@ -7,7 +7,9 @@ import org.joda.time.DateTime;
 import java.util.List;
 
 import de.nnscr.attendance.listener.DrawFragmentListener;
+import de.nnscr.attendance.listener.SummaryRecordsResultListener;
 import de.nnscr.attendance.manager.SummaryManager;
+import de.nnscr.attendance.model.SummaryDay;
 import de.nnscr.attendance.model.SummaryState;
 import de.nnscr.attendance.model.SummaryTimeSpan;
 
@@ -41,6 +43,12 @@ public class SummaryMediator {
         listener.onStateChanged();
     }
 
+    public void selectDay(SummaryDay day) {
+        state.setDay(day);
+        listener.onSwitchToDetails();
+        listener.onStateChanged();
+    }
+
     public void setFirstRecord(DateTime firstRecord) {
         state.setFirstRecord(firstRecord);
         listener.onStateChanged();
@@ -52,5 +60,9 @@ public class SummaryMediator {
 
     public void requestSummaries(final List<? extends SummaryTimeSpan> model, final ArrayAdapter adapter) {
         manager.getSummaries(model, adapter);
+    }
+
+    public void requestRecords(DateTime start, DateTime end, SummaryRecordsResultListener callback) {
+        manager.getRecords(start, end, callback);
     }
 }
