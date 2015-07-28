@@ -1,5 +1,6 @@
 package de.nnscr.attendance.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -34,7 +35,7 @@ import de.nnscr.attendance.manager.AttendanceManager;
 import de.nnscr.attendance.R;
 import de.nnscr.attendance.StatusChangeEventListener;
 
-public class MainActivity extends ActionBarActivity implements StatusChangeEventListener {
+public class MainActivity extends Activity implements StatusChangeEventListener {
     final int STATUS = 0;
     final int TOTAL = 2;
     final int BLOCK = 3;
@@ -72,6 +73,8 @@ public class MainActivity extends ActionBarActivity implements StatusChangeEvent
         builder.setContentTitle("Anwesend");
         builder.setContentText("Du bist momentan anwesend.");
         builder.setContentIntent(resultPendingIntent);
+        builder.setOngoing(true);
+        builder.setLights(Color.MAGENTA, 1000, 0);
         notification = builder.build();
 
         // build the manager
