@@ -1,56 +1,47 @@
 package de.nnscr.attendance.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
+import android.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import de.nnscr.attendance.helper.TimeFormatHelper;
-import de.nnscr.attendance.manager.AttendanceManager;
 import de.nnscr.attendance.R;
 import de.nnscr.attendance.StatusChangeEventListener;
+import de.nnscr.attendance.helper.TimeFormatHelper;
+import de.nnscr.attendance.manager.AttendanceManager;
+import de.nnscr.attendance.widget.SimpleCard;
 
+/**
+ * Created by philipp on 28.07.15.
+ */
 public class MainActivity extends Activity implements StatusChangeEventListener {
-    final int STATUS = 0;
-    final int TOTAL = 2;
-    final int BLOCK = 3;
-    final int EMPLOYEE = 1;
-    final int DEVELOPER = 4;
+    private SimpleCard cardStatus;
+    private SimpleCard cardEmployee;
+    private SimpleCard cardBlock;
+    private SimpleCard cardToday;
 
-    AttendanceManager manager;
-    Notification notification;
-    NotificationManager notificationManager;
-    Date currentBlockStart;
-    Timer timer;
+    private AttendanceManager manager;
+    private Notification notification;
+    private NotificationManager notificationManager;
+    private SharedPreferences preferences;
+    private Date currentBlockStart;
+
+    private Timer timer;
     private boolean timerRunning;
-    private List<HashMap<String, String>> model;
-    SimpleAdapter adapter;
-    SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +60,7 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
 
         // build the notification
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.mipmap.ic_launcher);
+        builder.setSmallIcon(R.drawable.ic_av_timer_black_24dp);
         builder.setContentTitle("Anwesend");
         builder.setContentText("Du bist momentan anwesend.");
         builder.setContentIntent(resultPendingIntent);
@@ -81,94 +72,50 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
         manager = new AttendanceManager(this, this);
         manager.authenticate();
 
-        // item mapping
-        String[] from = new String[] { "title", "value"};
-        int[] to = new int[] { android.R.id.text1, android.R.id.text2 };
-
-        model = new ArrayList<>();
-        model.add(createHashmap("Status", "Unbekannt"));
-        model.add(createHashmap("Mitarbeiter", "Unbekannt"));
-        model.add(createHashmap("Gesamt Heute", "00:00:00"));
-        model.add(createHashmap("Aktueller Block", "00:00:00"));
-
-        // set adapter
-        ListView lv = (ListView)findViewById(R.id.listView);
-        adapter = new SimpleAdapter(this, model, android.R.layout.simple_list_item_2, from, to);
-        lv.setAdapter(adapter);
-
-        // required to build the alert
-        final Context context = this;
-
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        // setup cards that display all information
+        cardStatus = (SimpleCard)findViewById(R.id.card_status);
+        cardStatus.setCaption("Status");
+        cardStatus.setValue("Unbekannt");
+        cardStatus.makeClickable(new View.OnClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (i == DEVELOPER) {
-                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-                    dialogBuilder.setTitle("Entwicklermodus beenden?");
-                    dialogBuilder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            preferences.edit().putBoolean("dev_mode", false).commit();
-                            setDeveloperUI();
-                            manager.pollState();
-                        }
-                    });
-                    dialogBuilder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                        }
-                    });
-
-                    dialogBuilder.create().show();
-                }
+            public void onClick(View v) {
+                manager.checkInOrOut();
             }
         });
 
-        setDeveloperUI();
+        cardEmployee = (SimpleCard)findViewById(R.id.card_employee);
+        cardEmployee.setCaption("Mitarbeiter");
+        cardEmployee.setValue("Unbekannt");
+        cardEmployee.makeClickable(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openSettings();
+            }
+        });
+
+        cardBlock = (SimpleCard)findViewById(R.id.card_block);
+        cardBlock.setCaption("Aktueller Block");
+        cardBlock.setValue("00:00:00");
+
+        cardToday = (SimpleCard)findViewById(R.id.card_today);
+        cardToday.setCaption("Heute");
+        cardToday.setValue("00:00:00");
+        cardToday.makeClickable(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openSummary();
+            }
+        });
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setActionBar(toolbar);
     }
 
     @Override
     protected void onResume() {
         manager.pollState();
-        setDeveloperUI();
 
         super.onResume();
-    }
-
-    private void setViewItem(int id, String value) {
-        model.get(id).put("value", value);
-        adapter.notifyDataSetChanged();
-    }
-
-    private void setStatusColor(int color) {
-        ListView lv = (ListView)findViewById(R.id.listView);
-        View item = lv.getChildAt(STATUS);
-        //item.setBackgroundColor(color);
-        TextView tv = (TextView)item.findViewById(android.R.id.text2);
-        tv.setTextColor(color);
-    }
-
-    private void setDeveloperUI() {
-        setDeveloperUI(preferences.getBoolean("dev_mode", false));
-    }
-
-    private void setDeveloperUI(boolean mode) {
-        if (mode && model.size() <= DEVELOPER) {
-            model.add(createHashmap("Entwickler", "Entwicklermodus aktiviert."));
-        } else if(!mode && model.size() > DEVELOPER) {
-            model.remove(DEVELOPER);
-        }
-
-        adapter.notifyDataSetChanged();
-    }
-
-    private HashMap<String, String> createHashmap(String title, String value) {
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("title", title);
-        hashMap.put("value", value);
-
-        return hashMap;
     }
 
     @Override
@@ -210,31 +157,23 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
         startActivity(intent);
     }
 
-    public void onToggle(View v) {
-        findViewById(R.id.btn_toggle).setEnabled(false);
-        manager.checkInOrOut();
-    }
-
     @Override
     public void onStatusChange(AttendanceManager.State state) {
-        Button btn = (Button)findViewById(R.id.btn_toggle);
-        btn.setEnabled(true);
-
         if (state == AttendanceManager.State.IN) {
-            setViewItem(STATUS, "Anwesend");
-            setStatusColor(Color.GREEN);
-            btn.setText(R.string.check_out);
+            cardStatus.setValue("Anwesend");
+            cardStatus.setValueColor(Color.GREEN);
+
             showNotification();
             startTimer();
         } else {
-            setViewItem(STATUS, "Abwesend");
-            setStatusColor(Color.RED);
-            btn.setText(R.string.check_in);
+            cardStatus.setValue("Abwesend");
+            cardStatus.setValueColor(Color.RED);
+
             hideNotification();
             stopTimer();
         }
 
-        setViewItem(TOTAL, formatTime(manager.totalTime));
+        cardToday.setValue(formatTime(manager.totalTime));
     }
 
     @Override
@@ -249,7 +188,7 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
 
     @Override
     public void onNameChange(String name) {
-        setViewItem(EMPLOYEE, name);
+        cardEmployee.setValue(name);
     }
 
     protected void showNotification() {
@@ -261,7 +200,7 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
     }
 
     protected void startTimer() {
-        setViewItem(BLOCK, formatTime(0));
+        cardBlock.setValue(formatTime(0));
 
         if (!timerRunning) {
             if (null == currentBlockStart) {
@@ -278,8 +217,8 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
                         public void run() {
                             long currentTimeBlock = (new Date().getTime() - currentBlockStart.getTime()) / 1000;
 
-                            setViewItem(BLOCK, formatTime(currentTimeBlock));
-                            setViewItem(TOTAL, formatTime(manager.totalTime + currentTimeBlock));
+                            cardToday.setValue(formatTime(manager.totalTime + currentTimeBlock));
+                            cardBlock.setValue(formatTime(currentTimeBlock));
                         }
                     });
                 }
@@ -288,7 +227,7 @@ public class MainActivity extends Activity implements StatusChangeEventListener 
     }
 
     protected void stopTimer() {
-        setViewItem(BLOCK, formatTime(0));
+        cardBlock.setValue(formatTime(0));
 
         if (timer != null) {
             currentBlockStart = null;

@@ -1,12 +1,45 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Material">
-        <!-- Customize your theme here. -->
+    <!-- summary -->
+    <style name="OldTheme" parent="Theme.AppCompat.Light">
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
+        <item name="android:statusBarColor">@color/primaryColorDark</item>
+        <item name="actionBarTheme">@style/ToolbarTheme</item>
     </style>
 
-    <style name="OldTheme" parent="Theme.AppCompat.Light">
-        <!-- Customize your theme here. -->
+    <!-- settings -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light">
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
+        <item name="android:statusBarColor">@color/primaryColorDark</item>
+        <item name="android:actionBarTheme">@style/ToolbarTheme</item>
+
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+    </style>
+
+    <!-- main -->
+    <style name="MaterialTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryColorDark</item>
+        <item name="android:statusBarColor">@color/primaryColorDark</item>
+
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+    </style>
+
+    <style name="ToolbarTheme" parent="android:ThemeOverlay.Material.Dark.ActionBar">
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorPrimaryDark">@color/primaryColorDark</item>
+        <item name="android:statusBarColor">@color/primaryColorDark</item>
+    </style>
+
+    <style name="ToolbarMenuTheme" parent="ThemeOverlay.AppCompat.Light">
+
+    </style>
+
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">@color/toolbarTextColor</item>
     </style>
 
 </resources>
